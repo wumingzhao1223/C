@@ -1,3 +1,14 @@
+.vs/
+*.dir/
+Debug/
+Release/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
 .DS_Store
 a.out
 a
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
