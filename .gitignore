@@ -1,5 +1,7 @@
 .vs/
 *.dir/
+x86/
+x64/
 Debug/
 Release/
 CMakeFiles/
