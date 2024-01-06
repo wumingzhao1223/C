@@ -8,6 +8,14 @@
     default:"?"                                                 \
 )
 
+#define print(T) _Generic((T),                                  \
+    int:printf("%d", (T)),                                      \
+    char:printf("%c", (T)),                                     \
+    char*:printf("%s", (T)),                                    \
+    const char*:printf("%s", (T)),                              \
+    default:printf("?")                                         \
+)
+
 int main(void)
 {
     int i = 1;
@@ -23,5 +31,20 @@ int main(void)
     const char* cs = "cstring";
     printf("%s\n", TYPENAME(cs));
     printf("%s\n", TYPENAME((const char*)"cstring"));
+
+    int i2 = 1;
+    print(i2);
+    print(1);
+    char c2 = 'a';
+    print(c2);
+    print('a');
+    print((char)97);
+    char* s2 = "string";
+    print(s2);
+    print("string");
+    const char* cs2 = "cstring";
+    print(cs2);
+    print((const char*)"cstring");
+
     return 0;
 }
