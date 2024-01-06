@@ -16,6 +16,14 @@
     default:printf("?")                                         \
 )
 
+#define println(T) _Generic((T),                                  \
+    int:printf("%d\n", (T)),                                      \
+    char:printf("%c\n", (T)),                                     \
+    char*:printf("%s\n", (T)),                                    \
+    const char*:printf("%s\n", (T)),                              \
+    default:printf("?\n")                                         \
+)
+
 int main(void)
 {
     int i = 1;
