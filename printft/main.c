@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
 
 #define TYPENAME(T) _Generic((T),                               \
     int:"int",                                                  \
@@ -7,6 +9,26 @@
     const char*:"const char*",                                  \
     default:"?"                                                 \
 )
+
+#define TYPE_INT                    1
+#define TYPE_CHAR                   2
+#define TYPE_CHAR_PTR               3
+#define TYPE_CONST_CHAR_PTR         4
+#define TYPE_DEFAULT                5
+
+#define TYPECODE(T) _Generic((T),                               \
+    int:TYPE_INT,                                               \
+    char:TYPE_CHAR,                                             \
+    char*:TYPE_CHAR_PTR,                                        \
+    const char*:TYPE_CONST_CHAR_PTR,                            \
+    default:TYPE_DEFAULT                                        \
+)
+
+#define PRINT_BUF_SIZE 1024
+
+#define NUMBER_BUF_SIZE 32
+
+#define P(arg) TYPECODE(arg), (arg)
 
 #define print(T) _Generic((T),                                  \
     int:printf("%d", (T)),                                      \
@@ -24,8 +46,91 @@
     default:printf("?\n")                                         \
 )
 
+int snfmtv(char* s, int n, const char* fmt, va_list v)
+{
+    memset(s, 0, n);
+    int fmtlen = strlen(fmt);
+    int bufIndex = 0;
+    for (int i = 0; i < fmtlen; i++)
+    {
+        if (fmt[i] != '{')
+        {
+            s[bufIndex++] = fmt[i];
+        }
+        else
+        {
+            for (int j = i + 1; j < fmtlen; j++)
+            {
+                if (fmt[j] == '}')
+                {
+                    int typecode = va_arg(v, int);
+                    switch (typecode)
+                    {
+                    case TYPE_INT:
+                        int intval = va_arg(v, int);
+                        char intstr[NUMBER_BUF_SIZE];
+                        int intstr_len = snprintf(intstr, NUMBER_BUF_SIZE, "%d", intval);
+                        memcpy(s + bufIndex, intstr, intstr_len);
+                        bufIndex += intstr_len;
+                        break;
+                    case TYPE_CHAR:
+                        char charval = va_arg(v, char);
+                        char charstr[NUMBER_BUF_SIZE];
+                        int charstr_len = snprintf(charstr, NUMBER_BUF_SIZE, "%c", charval);
+                        memcpy(s + bufIndex, charstr, charstr_len);
+                        bufIndex += charstr_len;
+                        break;
+                    case TYPE_CHAR_PTR:
+                    case TYPE_CONST_CHAR_PTR:
+                        char* str = va_arg(v, char*);
+                        int str_len = strlen(str);
+                        memcpy(s + bufIndex, str, str_len);
+                        bufIndex += str_len;
+                        break;
+                    default:
+                        break;
+                    }
+                    i = j;
+                    break;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+int snfmt(char* s, int n, const char* fmt, ...)
+{
+    va_list v;
+    va_start(v, fmt);
+    int c = snfmtv(s, n, fmt, v);
+    va_end(v);
+    return c;
+}
+
+int printftv(const char* format, va_list args)
+{
+    char buf[PRINT_BUF_SIZE];
+    int c = snfmtv(buf, PRINT_BUF_SIZE, format, args);
+    printf(buf);
+    return 0;
+}
+
+int printft(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    int c = printftv(format, args);
+    va_end(args);
+    return c;
+}
+
 int main(void)
 {
+    const char* name = "Bob";
+    int age = 31;
+    //output: Hi, Bob. I'm 31 years old.
+    printft("Hi, {}. I'm {} years old.\n", P(name), P(age));
     int i = 1;
     printf("%s\n", TYPENAME(i));
     printf("%s\n", TYPENAME(1));
